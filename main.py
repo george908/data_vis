@@ -111,6 +111,8 @@ def draw_current_graph(year40, ax, name_of_graph):
     ax.set_xticklabels(week_labels, fontsize=8)
     # move the numbers closer so it looks better
     ax.tick_params(axis="x", pad=-5)
+    # take out the numbers between the inner circles
+    ax.set_yticklabels([])
     
     # make the temperature changes the same length as the other arrays
     temperature_change_array = temperature_change.copy()
@@ -157,6 +159,25 @@ axes = axes.flatten()
 for index, year in enumerate(range(1840, 1851)):
     year_info = data[data["year"] == year].copy()
     draw_current_graph(year_info, axes[index], str(year))
+
+# columns to get the average of for the last graph 
+columns_to_get_average = ["mean_temperature", "deaths", "temperature_reference", "mortality_reference"]
+
+# get rid of the ? marks
+for column in columns_to_get_average:
+    data[column] = pd.to_numeric(data[column], errors="coerce")
+# get the average for each week
+average_rows = []
+for week in range(1, 53):
+    week_info = data[data["week"] == week]
+    average_week = week_info[columns_to_get_average].mean()
+    average_week["week"] = week
+    average_rows.append(average_week)
+
+# turn the averages into a dataframe so that it can be input the same way as the single years
+average_data = pd.DataFrame(average_rows)
+# call the function to draw the average graph
+draw_current_graph(average_data, axes[11], "Average")
 
 
 plt.tight_layout() 
