@@ -127,9 +127,9 @@ def draw_current_graph(year40, ax, name_of_graph):
     # fill the space where the temperature is less than the reference 
     ax.fill_between(angles_array, temperature_reference_array, temperature_array, where=np.array(temperature_change_array) < 0, color="blue", interpolate=True)
     # fill the space where the mortality is more than the reference 
-    ax.fill_between(angles_array, mortality_reference_array, mortality_array, where=np.array(mortality_change_array) > 0, color="red",interpolate=True)
+    ax.fill_between(angles_array, mortality_reference_array, mortality_array, where=np.array(mortality_change_array) > 0, color="grey",interpolate=True)
     # fill the space where the mortality is less than the reference 
-    ax.fill_between(angles_array, mortality_reference_array, mortality_array, where=np.array(mortality_change_array) < 0, color="blue", interpolate=True)
+    ax.fill_between(angles_array, mortality_reference_array, mortality_array, where=np.array(mortality_change_array) < 0, color="gold", interpolate=True)
     
     # mark the weeks where the temperature data was missing
     for angle in missing_temperature_angles:
@@ -137,7 +137,7 @@ def draw_current_graph(year40, ax, name_of_graph):
         smooth_angles = []
         for num in range(10):
             smooth_angles.append(angle + (2*np.pi/number_of_weeks) * (num/9))
-        ax.plot(smooth_angles, [temperature_reference * temperature_scale] * len(smooth_angles), color="purple")
+        ax.plot(smooth_angles, [temperature_reference * temperature_scale] * len(smooth_angles), color="purple", linewidth=3)
     
     # mark the weeks where the mortality data was missing
     for angle in missing_mortality_angles:
@@ -145,7 +145,7 @@ def draw_current_graph(year40, ax, name_of_graph):
         smooth_angles = []
         for num in range(10):
             smooth_angles.append(angle + (2*np.pi/number_of_weeks) * (num/9))
-        ax.plot(smooth_angles, [mortality_reference] * len(smooth_angles), color="purple")
+        ax.plot(smooth_angles, [mortality_reference] * len(smooth_angles), color="purple", linewidth=3)
 
     ax.set_title(name_of_graph)
 
@@ -158,7 +158,7 @@ axes = axes.flatten()
 # loop through each year to pass it into the draw graph array 
 for index, year in enumerate(range(1840, 1851)):
     year_info = data[data["year"] == year].copy()
-    draw_current_graph(year_info, axes[index], str(year))
+    draw_current_graph(year_info, axes[index], "Year " + str(year))
 
 # columns to get the average of for the last graph 
 columns_to_get_average = ["mean_temperature", "deaths", "temperature_reference", "mortality_reference"]
@@ -177,8 +177,13 @@ for week in range(1, 53):
 # turn the averages into a dataframe so that it can be input the same way as the single years
 average_data = pd.DataFrame(average_rows)
 # call the function to draw the average graph
-draw_current_graph(average_data, axes[11], "Average")
+draw_current_graph(average_data, axes[11], "The average of Years 1840-1850")
+
+# leave 10% of the page for the title and 10% of the page for the legend 
+plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10, hspace=0.35, wspace=0.20)
+# give the page a title in bold that matches the original title 
+fig.suptitle("Temperature and Mortality of London (1840–1850)", fontsize=17, fontweight="bold",y=0.97)
 
 
-plt.tight_layout() 
+plt.savefig("final_image.pdf") # PDF to see how the final version of it would work 
 plt.show()
