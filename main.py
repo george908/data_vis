@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Patch
 
 # get the data from the csv
 data = pd.read_csv("farr.csv")
@@ -70,9 +71,6 @@ def draw_current_graph(year40, ax, name_of_graph):
             mortality_change[week] = 0
             missing_mortality_angles.append(angles_array[week])
     
-    # add the temperature change 
-    year40["temperature_change"] = temperature_change
-    
     # add one to complete the circle
     temperature_array.append(temperature_array[0])
     
@@ -97,10 +95,12 @@ def draw_current_graph(year40, ax, name_of_graph):
     # make it clockwise
     ax.set_theta_direction(-1)
     
-    # make labels for only for every fourth week
+    # make labels for only for every four weeks
     week_labels = []
     for week in range(1, number_of_weeks + 1):
-        if week % 4 == 0:
+        if week == 1:
+            week_labels.append("Week 1")
+        elif (week - 1) % 4 == 0:
             week_labels.append(str(week))
         else:
             week_labels.append("")
@@ -130,6 +130,10 @@ def draw_current_graph(year40, ax, name_of_graph):
     ax.fill_between(angles_array, mortality_reference_array, mortality_array, where=np.array(mortality_change_array) > 0, color="grey",interpolate=True)
     # fill the space where the mortality is less than the reference 
     ax.fill_between(angles_array, mortality_reference_array, mortality_array, where=np.array(mortality_change_array) < 0, color="gold", interpolate=True)
+    # put a black dashed line for the temperature reference value that year
+    ax.plot(angles_array, temperature_reference_array, color="black", linestyle="dashed", linewidth=0.75)
+    # put a black dashed line for the mortality reference value that year
+    ax.plot(angles_array, mortality_reference_array, color="black", linestyle="dashed", linewidth=0.75)
     
     # mark the weeks where the temperature data was missing
     for angle in missing_temperature_angles:
@@ -137,7 +141,7 @@ def draw_current_graph(year40, ax, name_of_graph):
         smooth_angles = []
         for num in range(10):
             smooth_angles.append(angle + (2*np.pi/number_of_weeks) * (num/9))
-        ax.plot(smooth_angles, [temperature_reference * temperature_scale] * len(smooth_angles), color="purple", linewidth=3)
+        ax.plot(smooth_angles, [temperature_reference * temperature_scale] * len(smooth_angles), color="#BF40BF", linewidth=3)
     
     # mark the weeks where the mortality data was missing
     for angle in missing_mortality_angles:
@@ -145,7 +149,7 @@ def draw_current_graph(year40, ax, name_of_graph):
         smooth_angles = []
         for num in range(10):
             smooth_angles.append(angle + (2*np.pi/number_of_weeks) * (num/9))
-        ax.plot(smooth_angles, [mortality_reference] * len(smooth_angles), color="purple", linewidth=3)
+        ax.plot(smooth_angles, [mortality_reference] * len(smooth_angles), color="#BF40BF", linewidth=3)
 
     ax.set_title(name_of_graph)
 
@@ -180,10 +184,39 @@ average_data = pd.DataFrame(average_rows)
 draw_current_graph(average_data, axes[11], "The average of Years 1840-1850")
 
 # leave 10% of the page for the title and 10% of the page for the legend 
-plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10, hspace=0.35, wspace=0.20)
+plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.16, hspace=0.35, wspace=0.20)
 # give the page a title in bold that matches the original title 
 fig.suptitle("Temperature and Mortality of London (1840–1850)", fontsize=17, fontweight="bold",y=0.97)
 
+# make an array of colour labels for the legend to show what the different colours in the charts mean 
+coloured_legend_labels = [
+    Patch(color="red", label="Temperature above reference"),
+    Patch(color="blue", label="Temperature below reference"),
+    Patch(color="grey", label="Deaths above reference"),
+    Patch(color="gold", label="Deaths below reference"),
+    plt.Line2D([], [], color="black", linestyle="--", label="Reference values"),
+    Patch(color="#BF40BF", label="Missing data")
+]
+# plot the colur labels of the legend on the right side of the legend 
+fig.legend(handles=coloured_legend_labels, loc="center right", bbox_to_anchor=(0.98, 0.08), ncol=1, frameon=False, fontsize=9)
+
+fig.text(0.06, 0.14,
+    "Each circle represents the 52 weeks of the year starting from the bottom and moving\n" 
+    "clockwise. The inner ring shows temperature and the outer ring shows deaths relative to\n"
+    "their reference values with the temperature being measured in Fahrenheit and deaths\n"
+    "measured in amount per week. The colours show if the values are above or below their\n"
+    "reference values. Thicker coloured areas mean larger differences from the reference value.\n"
+    "The temperature values and their reference values are multiplied by 10 to make the inner\n"
+    "ring easier to see and analyse. Each year has its own scale to make the patterns visually\n"
+    "easier to see, so comparisons should be made within each chart and not between different\n"
+    "years. The last circle shows the weekly averages over the years 1840-1850 to compare the\n"
+    "overall patterns. The reference levels for the temperature and deaths is marked with a\n"
+    "dashed line and weeks with data missing are marked in purple at the reference level, but\n"
+    "coloured areas may still appear above or below due to interpolation.",
+    ha="left",
+    va="top",
+    fontsize=8
+)
 
 plt.savefig("final_image.pdf") # PDF to see how the final version of it would work 
 plt.show()
